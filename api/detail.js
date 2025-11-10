@@ -128,43 +128,74 @@ module.exports = (req, res) => {
     // 查找该宝可梦的所有形态
     const allForms = pokemonData.filter(p => p.idx === pokemon.idx);
 
+    // 处理类型信息
+    const types = [pokemon.type1];
+    if (pokemon.type2) types.push(pokemon.type2);
+
+    // 处理特性信息
+    const abilities = detail && detail.ability ?
+      detail.ability.split(',').map(a => a.trim()) : [];
+
+    // 处理蛋组信息
+    const egg_groups = [];
+    if (detail) {
+      if (detail.egg_group1) egg_groups.push(detail.egg_group1);
+      if (detail.egg_group2 && detail.egg_group2 !== detail.egg_group1) egg_groups.push(detail.egg_group2);
+    }
+
     // 合并基础数据和详细数据
     const combinedData = {
       // 基础信息
-      id: pokemon.id,
-      idx: pokemon.idx,
-      name_zh: pokemon.name_zh,
-      name_ja: pokemon.name_ja,
-      name_en: pokemon.name_en,
-      type1: pokemon.type1,
-      type2: pokemon.type2,
-      form: pokemon.form,
-      generation: pokemon.generation,
+      basic_info: {
+        id: pokemon.id,
+        pokedex_number: pokemon.idx,
+        name: {
+          chinese: pokemon.name_zh,
+          japanese: pokemon.name_ja,
+          english: pokemon.name_en
+        },
+        types: types,
+        form: pokemon.form || "标准形态",
+        generation: pokemon.generation,
+        image_url: detail ? detail.img_url : null
+      },
 
-      // 多形态信息
-      has_multiple_forms: allForms.length > 1,
-      all_forms: allForms.map(form => ({
-        id: form.id,
-        type1: form.type1,
-        type2: form.type2,
-        form: form.form
-      })),
-
-      // 详细信息 (如果有)
-      ...(detail ? {
-        img_url: detail.img_url,
-        category: detail.category,
-        ability: detail.ability,
+      // 外观信息
+      appearance: detail ? {
+        body_style: detail.body_style,
         height: detail.height,
         weight: detail.weight,
-        body_style: detail.body_style,
-        catch_rate: detail.catch_rate,
+        category: detail.category
+      } : null,
+
+      // 能力信息
+      abilities: detail ? {
+        abilities: abilities,
+        effort_values: detail.effort_value
+      } : null,
+
+      // 繁殖信息
+      breeding: detail ? {
+        egg_groups: egg_groups,
         gender_ratio: detail.gender_ratio,
-        egg_group1: detail.egg_group1,
-        egg_group2: detail.egg_group2,
         hatch_time: detail.hatch_time,
-        effort_value: detail.effort_value
-      } : {})
+        catch_rate: detail.catch_rate
+      } : null,
+
+      // 多形态信息
+      forms: {
+        has_multiple_forms: allForms.length > 1,
+        current_form: {
+          id: pokemon.id,
+          types: types,
+          form: pokemon.form || "标准形态"
+        },
+        all_forms: allForms.map(form => ({
+          id: form.id,
+          types: form.type2 ? [form.type1, form.type2] : [form.type1],
+          form: form.form || "标准形态"
+        }))
+      }
     };
 
     // 返回宝可梦详情

@@ -23,6 +23,7 @@ module.exports = (req, res) => {
   try {
     // 读取宝可梦数据
     const pokemonData = JSON.parse(fs.readFileSync(path.join(__dirname, '../data/t_pokemon.json'), 'utf8'));
+    const detailData = JSON.parse(fs.readFileSync(path.join(__dirname, '../data/t_pokemon_detail.json'), 'utf8'));
 
     // 获取查询参数
     const {
@@ -90,8 +91,15 @@ module.exports = (req, res) => {
       const startIndex = (pageNum - 1) * limitNum;
       const endIndex = startIndex + limitNum;
 
-      // 获取当前页数据
-      const pokemons = filteredData.slice(startIndex, endIndex);
+      // 获取当前页数据并合并图片URL
+      const pokemons = filteredData.slice(startIndex, endIndex).map(pokemon => {
+        // 查找对应的详细信息
+        const detail = detailData.find(d => d.id === pokemon.id || d.idx === pokemon.idx);
+        return {
+          ...pokemon,
+          image_url: detail ? detail.img_url : null
+        };
+      });
 
       // 返回带分页信息的响应
       return res.json({
@@ -109,11 +117,20 @@ module.exports = (req, res) => {
         }
       });
     } else {
-      // 没有分页参数 - 返回所有数据
+      // 没有分页参数 - 返回所有数据并合并图片URL
+      const pokemonsWithImages = filteredData.map(pokemon => {
+        // 查找对应的详细信息
+        const detail = detailData.find(d => d.id === pokemon.id || d.idx === pokemon.idx);
+        return {
+          ...pokemon,
+          image_url: detail ? detail.img_url : null
+        };
+      });
+
       return res.json({
         success: true,
         total: filteredData.length,
-        data: filteredData
+        data: pokemonsWithImages
       });
     }
 
