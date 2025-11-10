@@ -33,7 +33,9 @@ module.exports = (req, res) => {
       nameJa,
       nameEn,
       type,
-      generation
+      generation,
+      id,
+      idx
     } = req.query;
 
     // 判断是否需要分页
@@ -73,6 +75,20 @@ module.exports = (req, res) => {
     if (type) {
       filteredData = filteredData.filter(pokemon =>
         pokemon.type1 === type || pokemon.type2 === type
+      );
+    }
+
+    // 按ID精确查找
+    if (id) {
+      filteredData = filteredData.filter(pokemon =>
+        pokemon.id === parseInt(id)
+      );
+    }
+
+    // 按图鉴号查找
+    if (idx) {
+      filteredData = filteredData.filter(pokemon =>
+        pokemon.idx === parseInt(idx)
       );
     }
 
