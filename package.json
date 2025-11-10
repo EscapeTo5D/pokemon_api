@@ -1,0 +1,16 @@
+{
+  "name": "pokemon-api",
+  "version": "1.0.0",
+  "description": "宝可梦API服务",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "vercel dev"
+  },
+  "keywords": ["pokemon", "api", "vercel"],
+  "author": "Your Name",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

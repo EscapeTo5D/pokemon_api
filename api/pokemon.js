@@ -1,16 +1,29 @@
 const fs = require('fs');
 const path = require('path');
 
-// 读取宝可梦数据
-const pokemonData = JSON.parse(fs.readFileSync(path.join(__dirname, '../../data/t_pokemon.json'), 'utf8'));
+// Vercel serverless function handler
+module.exports = (req, res) => {
+  // 设置CORS
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
-/**
- * 获取宝可梦列表
- * @param {Object} req - 请求对象
- * @param {Object} res - 响应对象
- */
-function getPokemonList(req, res) {
+  // 处理OPTIONS请求
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+
+  if (req.method !== 'GET') {
+    return res.status(405).json({
+      success: false,
+      error: 'Method not allowed'
+    });
+  }
+
   try {
+    // 读取宝可梦数据
+    const pokemonData = JSON.parse(fs.readFileSync(path.join(__dirname, '../data/t_pokemon.json'), 'utf8'));
+
     // 获取查询参数
     const {
       page,
@@ -81,7 +94,7 @@ function getPokemonList(req, res) {
       const pokemons = filteredData.slice(startIndex, endIndex);
 
       // 返回带分页信息的响应
-      res.json({
+      return res.json({
         success: true,
         data: {
           pokemons,
@@ -97,111 +110,18 @@ function getPokemonList(req, res) {
       });
     } else {
       // 没有分页参数 - 返回所有数据
-      res.json({
+      return res.json({
         success: true,
-        data: {
-          pokemons: filteredData,
-          total_count: filteredData.length
-        }
+        total: filteredData.length,
+        data: filteredData
       });
     }
 
   } catch (error) {
-    console.error('获取宝可梦列表时出错:', error);
-    res.status(500).json({
+    console.error('读取宝可梦数据时出错:', error);
+    return res.status(500).json({
       success: false,
       error: '服务器内部错误'
     });
   }
-}
-
-/**
- * 获取单个宝可梦详情
- * @param {Object} req - 请求对象
- * @param {Object} res - 响应对象
- */
-function getPokemonById(req, res) {
-  try {
-    const { id } = req.params;
-    const pokemon = pokemonData.find(p => p.id === parseInt(id) || p.idx === parseInt(id));
-
-    if (!pokemon) {
-      return res.status(404).json({
-        success: false,
-        error: '宝可梦未找到'
-      });
-    }
-
-    res.json({
-      success: true,
-      data: pokemon
-    });
-
-  } catch (error) {
-    console.error('获取宝可梦详情时出错:', error);
-    res.status(500).json({
-      success: false,
-      error: '服务器内部错误'
-    });
-  }
-}
-
-/**
- * 获取所有类型列表
- * @param {Object} req - 请求对象
- * @param {Object} res - 响应对象
- */
-function getTypes(req, res) {
-  try {
-    const types = new Set();
-
-    pokemonData.forEach(pokemon => {
-      if (pokemon.type1) types.add(pokemon.type1);
-      if (pokemon.type2) types.add(pokemon.type2);
-    });
-
-    res.json({
-      success: true,
-      data: Array.from(types).sort()
-    });
-
-  } catch (error) {
-    console.error('获取类型列表时出错:', error);
-    res.status(500).json({
-      success: false,
-      error: '服务器内部错误'
-    });
-  }
-}
-
-/**
- * 获取所有世代列表
- * @param {Object} req - 请求对象
- * @param {Object} res - 响应对象
- */
-function getGenerations(req, res) {
-  try {
-    const generations = [...new Set(pokemonData.map(pokemon => pokemon.generation))].sort();
-
-    res.json({
-      success: true,
-      data: generations
-    });
-
-  } catch (error) {
-    console.error('获取世代列表时出错:', error);
-    res.status(500).json({
-      success: false,
-      error: '服务器内部错误'
-    });
-  }
-}
-
-// 导出处理函数
-module.exports = {
-  getPokemonList,
-  getPokemonById,
-  getTypes,
-  getGenerations,
-  pokemonData // 导出数据供其他模块使用
 };
