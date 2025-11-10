@@ -1,0 +1,12 @@
+{
+  "rewrites": [
+    {
+      "source": "/pokemon",
+      "destination": "/api/pokemon.js"
+    },
+    {
+      "source": "/pokemon/:path*",
+      "destination": "/api/pokemon.js"
+    }
+  ]
+}
