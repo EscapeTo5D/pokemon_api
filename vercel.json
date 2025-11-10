@@ -7,6 +7,14 @@
     {
       "source": "/pokemon/:path*",
       "destination": "/api/pokemon.js"
+    },
+    {
+      "source": "/detail",
+      "destination": "/api/detail.js"
+    },
+    {
+      "source": "/detail/:path*",
+      "destination": "/api/detail.js"
     }
   ]
 }
